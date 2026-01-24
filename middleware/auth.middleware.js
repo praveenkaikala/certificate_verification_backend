@@ -32,3 +32,52 @@ exports.adminAuth = async (req, res, next) => {
 };
 
 
+exports.instituteAuth = async (req, res, next) => {
+  try {
+    // 1️⃣ Get token from header
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Authorization token missing",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // 2️⃣ Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 3️⃣ Role check
+    if (decoded.role !== "institute") {
+      return res.status(403).json({
+        message: "Access denied. Institute only.",
+      });
+    }
+
+    // 4️⃣ Fetch institute
+    const institute = await Institute.findById(decoded.id).select("-password");
+
+    if (!institute) {
+      return res.status(401).json({
+        message: "Institute not found",
+      });
+    }
+
+    // 5️⃣ Approval check (IMPORTANT)
+    if (!institute.isApproved) {
+      return res.status(403).json({
+        message: "Institute is not approved by admin yet",
+      });
+    }
+
+    // 6️⃣ Attach institute to request
+    req.institute = institute;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Invalid or expired token",
+    });
+  }
+};
