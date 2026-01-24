@@ -12,9 +12,13 @@ const instituteSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    phone: {
+     reg_no: {
       type: String,
       required: true,
+      unique: true,
+    },
+    phone: {
+      type: String,
       unique: true,
     },
     password: {
@@ -23,6 +27,7 @@ const instituteSchema = new mongoose.Schema(
     },
     address: {
       type: String,
+      default:""
     },
     walletAddress: {
       type: String,
