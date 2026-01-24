@@ -1,7 +1,7 @@
 const Student = require("../models/student.model");
 const Certificate = require("../models/certificate.model");
 const Institute = require("../models/institute.model");
-const sendEmail = require("../utils/sendEmail"); // assume nodemailer helper
+const {sendCertificateIssuedEmail,sendStudentVerificationEmail,sendInstituteVerificationEmail} = require("../utils/emails"); // assume nodemailer helper
 
 /**
  * ✅ Verify / Approve Student
@@ -28,16 +28,10 @@ exports.verifyStudent = async (req, res) => {
     await student.save();
 
     // 📧 Send email
-    await sendEmail({
-      to: student.email,
-      subject: "Student Verification Successful",
-      text: `Hello ${student.name},
-      
-Your student profile has been successfully verified by the institute.
-You are now eligible to receive blockchain-based certificates.
-
-Regards,
-SkillChain`,
+    await sendStudentVerificationEmail({
+   studentEmail:student.email,
+   studentName:student.name,
+   instituteName:req.institute.name
     });
 
     res.status(200).json({
@@ -92,20 +86,11 @@ exports.issueCertificate = async (req, res) => {
     });
 
     // 📧 Send email
-    await sendEmail({
-      to: student.email,
-      subject: "Certificate Issued Successfully",
-      text: `Hello ${student.name},
-
-Your certificate for the course "${courseName}" has been successfully issued.
-
-Blockchain Transaction Hash:
-${transactionHash}
-
-You can now verify your certificate anytime.
-
-Regards,
-SkillChain`,
+    await sendCertificateIssuedEmail({
+        studentEmail:student.email,
+        studentName:student.name,
+        transactionHash,
+        courseName
     });
 
     res.status(201).json({
