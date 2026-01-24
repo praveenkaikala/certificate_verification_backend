@@ -1,9 +1,7 @@
 const Institute = require("../models/institute.model");
+const { sendInstituteVerificationEmail } = require("../utils/emails");
 
-/**
- * ✅ Verify / Approve Institute
- * Admin approves an institute
- */
+
 exports.verifyInstitute = async (req, res) => {
   try {
     const { instituteId } = req.params;
@@ -20,7 +18,10 @@ exports.verifyInstitute = async (req, res) => {
     institute.isApproved = true;
     institute.approvedBy = req.admin._id; // or req.user._id
     await institute.save();
-
+    await sendInstituteVerificationEmail({
+        instituteEmail:institute.email,
+        instituteName:institute.name
+    })
     res.status(200).json({
       message: "Institute approved successfully",
       institute,
@@ -33,10 +34,7 @@ exports.verifyInstitute = async (req, res) => {
   }
 };
 
-/**
- * 📋 Get all institutes (with pagination)
- * Query params: page, limit, approved
- */
+
 exports.getInstitutes = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -76,9 +74,7 @@ exports.getInstitutes = async (req, res) => {
 };
 
 
-/**
- * 🔍 Get institute details by ID
- */
+
 exports.getInstituteById = async (req, res) => {
   try {
     const { instituteId } = req.params;
@@ -100,10 +96,7 @@ exports.getInstituteById = async (req, res) => {
   }
 };
 
-/**
- * ❌ Remove institute
- * (Admin only)
- */
+
 exports.deleteInstitute = async (req, res) => {
   try {
     const { instituteId } = req.params;
