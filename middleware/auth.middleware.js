@@ -81,3 +81,57 @@ exports.instituteAuth = async (req, res, next) => {
     });
   }
 };
+
+const jwt = require("jsonwebtoken");
+const Student = require("../models/Student");
+
+exports.studentAuth = async (req, res, next) => {
+  try {
+    // 1️⃣ Get Authorization header
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Authorization token missing",
+      });
+    }
+
+    // 2️⃣ Extract token
+    const token = authHeader.split(" ")[1];
+
+    // 3️⃣ Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 4️⃣ Role validation
+    if (decoded.role !== "student") {
+      return res.status(403).json({
+        message: "Access denied. Student only.",
+      });
+    }
+
+    // 5️⃣ Fetch student
+    const student = await Student.findById(decoded.id).select("-password");
+
+    if (!student) {
+      return res.status(401).json({
+        message: "Student not found",
+      });
+    }
+
+    // 6️⃣ Verification check (IMPORTANT)
+    if (!student.verificationStatus) {
+      return res.status(403).json({
+        message: "Student not verified by institute yet",
+      });
+    }
+
+    // 7️⃣ Attach student to request
+    req.student = student;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      message: "Invalid or expired token",
+    });
+  }
+};
