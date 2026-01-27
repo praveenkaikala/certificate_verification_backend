@@ -6,7 +6,7 @@ exports.verifyInstitute = async (req, res) => {
   try {
     const { instituteId } = req.params;
 
-    const institute = await Institute.findById(instituteId);
+    const institute = await Institute.findById(instituteId).select("-password");
     if (!institute) {
       return res.status(404).json({ message: "Institute not found" });
     }
