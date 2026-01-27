@@ -48,6 +48,6 @@ const certificateSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-certificateSchema.index({ ipfsHash: 1 });
+
 
 module.exports=mongoose.model("Certificate", certificateSchema);

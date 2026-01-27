@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const Institute=require("../models/institute.model");
 const Admin = require("../models/admin.model");
-
+require("dotenv").config()
 exports.adminAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -10,9 +11,9 @@ exports.adminAuth = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-
+    console.log(token)
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    console.log("verified")
     if (decoded.role !== "admin") {
       return res.status(403).json({ message: "Access denied. Admin only." });
     }
@@ -82,8 +83,7 @@ exports.instituteAuth = async (req, res, next) => {
   }
 };
 
-const jwt = require("jsonwebtoken");
-const Student = require("../models/Student");
+const Student = require("../models/student.model");
 
 exports.studentAuth = async (req, res, next) => {
   try {

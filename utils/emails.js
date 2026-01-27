@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+require("dotenv").config()
 const baseTemplate = ({ title, content }) => `
 <!DOCTYPE html>
 <html>
@@ -101,14 +102,17 @@ const baseTemplate = ({ title, content }) => `
 ========================= */
  const sendMail = async ({ to, subject, html }) => {
     const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.PASSWORD,
+        },
+      });
   await transporter.sendMail({
-    from: `"SkillChain" <${process.env.EMAIL_USER}>`,
+    from: `"SkillChain" <${process.env.EMAIL}>`,
     to,
     subject,
     html,
@@ -144,6 +148,7 @@ const sendInstituteVerificationEmail = async ({
       </p>
     `,
   });
+  console.log(instituteEmail,instituteName)
 
   await sendMail({
     to: instituteEmail,
@@ -190,7 +195,7 @@ const sendCertificateIssuedEmail = async ({
 
   await sendMail({
     to: studentEmail,
-    subject: "Certificate Issued – SkillChain",
+    subject: "Certificate Issued SkillChain",
     html,
   });
 };

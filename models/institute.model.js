@@ -37,7 +37,6 @@ const instituteSchema = new mongoose.Schema(
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
-      required: true,
     },
     isApproved: {
       type: Boolean,

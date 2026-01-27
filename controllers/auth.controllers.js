@@ -8,7 +8,7 @@ const Student = require("../models/student.model");
 
 require("dotenv").config();
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
+const JWT_SECRET = process.env.JWT_SECRET
 
 // 🔐 Common JWT generator
 const generateToken = (user, role) => {
@@ -157,9 +157,142 @@ const verifyOtp = async (req, res) => {
   }
 };
 
+/**
+ * 🏫 Institute Registration
+ */
+const registerInstitute = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      reg_no,
+      phone,
+      password,
+      address,
+      walletAddress,
+    } = req.body;
+
+    // 1️⃣ Validate input
+    if (!name || !email || !reg_no || !password || !walletAddress) {
+      return res.status(400).json({
+        message: "All required fields must be provided",
+      });
+    }
+
+    // 2️⃣ Check existing institute
+    const exists = await Institute.findOne({
+      $or: [{ email }, { reg_no }, { walletAddress }],
+    });
+
+    if (exists) {
+      return res.status(409).json({
+        message: "Institute already registered",
+      });
+    }
+
+    // 3️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4️⃣ Create institute
+    const institute = await Institute.create({
+      name,
+      email,
+      reg_no,
+      phone,
+      password: hashedPassword,
+      address,
+      walletAddress,
+      isApproved: false,
+    });
+
+    res.status(201).json({
+      message: "Institute registered successfully. Await admin approval.",
+      instituteId: institute._id,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Institute registration failed",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * 🎓 Student Registration
+ */
+const registerStudent = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      password,
+      instituteId,
+      walletAddress,
+      reg_no
+    } = req.body;
+
+    // 1️⃣ Validate input
+    if (!name || !email || !phone || !password || !instituteId || !reg_no) {
+      return res.status(400).json({
+        message: "All required fields must be provided",
+      });
+    }
+
+    // 2️⃣ Check institute exists & approved
+    const institute = await Institute.findOne({
+      _id: instituteId,
+      isApproved: true,
+    });
+
+    if (!institute) {
+      return res.status(400).json({
+        message: "Invalid or unapproved institute",
+      });
+    }
+
+    // 3️⃣ Check existing student
+    const exists = await Student.findOne({
+      $or: [{ email }, { phone },{reg_no}],
+    });
+
+    if (exists) {
+      return res.status(409).json({
+        message: "Student already registered",
+      });
+    }
+
+    // 4️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 5️⃣ Create student
+    const student = await Student.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      instituteId,
+      walletAddress,
+      verificationStatus: false,reg_no,
+    });
+
+    res.status(201).json({
+      message: "Student registered successfully. Await institute verification.",
+      studentId: student._id,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Student registration failed",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   loginAdmin,
   loginInstitute,
   loginStudent,
   verifyOtp,
+  registerInstitute,
+  registerStudent
 };

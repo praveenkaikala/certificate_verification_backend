@@ -1,10 +1,16 @@
 const express=require("express")
 const  connect_db = require("./utils/connect_db")
 const authRouter=require("./routes/auth.routes")
+const instituteRouter=require("./routes/institute.routes")
+const adminRouter=require("./routes/admin.routes")
+const studentRouter=require("./routes/student.routes")
 const cors=require("cors")
 const app=express()
 app.use(express.json())
-app.use("/api/auth",authRouter)
+app.use("/api/v1/auth",authRouter)
+app.use("/api/v1/admin",adminRouter)
+app.use("/api/v1/institutes",instituteRouter)
+app.use("/api/v1/students",studentRouter)
 app.use(cors())
 
 app.listen(5000,()=>{

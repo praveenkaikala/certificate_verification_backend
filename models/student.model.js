@@ -18,6 +18,11 @@ const studentSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    reg_no:{
+      type:String,
+      required:true,
+      unique:true
+    },
     password: {
       type: String,
       required: true,
@@ -40,6 +45,10 @@ const studentSchema = new mongoose.Schema(
       type: String,
       default: "student",
     },
+    verificationStatus:{
+      type:Boolean,
+      default:false
+    }
   },
   { timestamps: true }
 );
