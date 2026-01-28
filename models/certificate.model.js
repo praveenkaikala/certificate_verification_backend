@@ -2,11 +2,6 @@ const mongoose=require("mongoose")
 
 const certificateSchema = new mongoose.Schema(
   {
-    certificateId: {
-      type: Number,
-      required: true,
-      unique: true,
-    },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
@@ -41,9 +36,9 @@ const certificateSchema = new mongoose.Schema(
     transactionHash: {
       type: String,
     },
-    issuerAddress: {
-      type: String,
-    },
+    // issuerAddress: {
+    //   type: String,
+    // },
   },
   { timestamps: true }
 );

@@ -2,7 +2,9 @@ const Student = require("../models/student.model");
 const Certificate = require("../models/certificate.model");
 const Institute = require("../models/institute.model");
 const {sendCertificateIssuedEmail,sendStudentVerificationEmail,sendInstituteVerificationEmail} = require("../utils/emails"); // assume nodemailer helper
-
+const fs = require("fs");
+const ipfs = require("../utils/ipfsClient");
+const { uploadToPinata } = require("../utils/pinata");
 /**
  * ✅ Verify / Approve Student
  */
@@ -52,15 +54,18 @@ exports.verifyStudent = async (req, res) => {
  */
 exports.issueCertificate = async (req, res) => {
   try {
+    // DEBUG
+    
     const instituteId = req.institute._id;
+   
     const {
       studentId,
       courseName,
-      ipfsHash,
-      transactionHash,
       issuerAddress,
+      transactionHash,
+      ipfsHash
     } = req.body;
-
+    console.log(studentId)
     const student = await Student.findOne({
       _id: studentId,
       instituteId,
@@ -72,26 +77,39 @@ exports.issueCertificate = async (req, res) => {
         message: "Verified student not found",
       });
     }
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Certificate file is required",
+      });
+    }
+    console.log("uploading")
+//    const ipfsHash = await uploadToPinata(req.file.path);
 
+//     // Remove local file
+//     fs.unlinkSync(req.file.path);
+
+//     res.status(200).json({
+//       message: "File uploaded to IPFS successfully",
+//       ipfsHash,
+//       gatewayUrl: `https://gateway.pinata.cloud/ipfs/${ipfsHash.cid}`,
+//     });
     const certificateCount = await Certificate.countDocuments();
     const certificate = await Certificate.create({
-      certificateId: certificateCount + 1,
       studentId,
       instituteId,
       studentName: student.name,
       courseName,
       ipfsHash,
-      transactionHash,
       issuerAddress,
+      transactionHash
     });
 
     // 📧 Send email
-    await sendCertificateIssuedEmail({
-        studentEmail:student.email,
-        studentName:student.name,
-        transactionHash,
-        courseName
-    });
+    // await sendCertificateIssuedEmail({
+    //     studentEmail:student.email,
+    //     studentName:student.name,
+    //     courseName
+    // });
 
     res.status(201).json({
       message: "Certificate issued successfully",

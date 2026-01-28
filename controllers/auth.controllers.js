@@ -71,7 +71,7 @@ const loginInstitute = async (req, res) => {
       }
     );
 
-    await sendOtp( email, otp, "institute", "login");
+    // await sendOtp( email, otp, "institute", "login");
 
     return res.status(200).json({
       message: "OTP sent to registered email. Please verify to complete login.",

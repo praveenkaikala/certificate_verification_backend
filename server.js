@@ -11,7 +11,11 @@ app.use("/api/v1/auth",authRouter)
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/institutes",instituteRouter)
 app.use("/api/v1/students",studentRouter)
+
 app.use(cors())
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/templates/index.html");
+});
 
 app.listen(5000,()=>{
     console.log("Server is running on 5000 port")
