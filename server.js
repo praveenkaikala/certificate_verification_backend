@@ -11,8 +11,15 @@ app.use("/api/v1/auth",authRouter)
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/institutes",instituteRouter)
 app.use("/api/v1/students",studentRouter)
-
-app.use(cors())
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://certificate-verification-using-bloc.vercel.app",
+];
+app.use(cors({
+    origin:allowedOrigins,
+    credentials:true
+}))
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/templates/index.html");
 });
