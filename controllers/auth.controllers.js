@@ -241,7 +241,7 @@ const registerStudent = async (req, res) => {
 
     // 2️⃣ Check institute exists & approved
     const institute = await Institute.findOne({
-      _id: instituteId,
+      reg_no: instituteId,
       isApproved: true,
     });
 
@@ -264,14 +264,13 @@ const registerStudent = async (req, res) => {
 
     // 4️⃣ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
     // 5️⃣ Create student
     const student = await Student.create({
       name,
       email,
       phone,
       password: hashedPassword,
-      instituteId,
+      instituteId:institute._id,
       walletAddress,
       verificationStatus: false,reg_no,
     });

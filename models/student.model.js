@@ -34,12 +34,15 @@ const studentSchema = new mongoose.Schema(
     },
     walletAddress: {
       type: String,
+      default:""
     },
     otp: {
       type: String,
+      default:null
     },
     otpExpires: {
       type: Date,
+      default:null
     },
     role: {
       type: String,

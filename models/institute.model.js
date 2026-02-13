@@ -31,8 +31,7 @@ const instituteSchema = new mongoose.Schema(
     },
     walletAddress: {
       type: String,
-      required: true,
-      unique: true,
+      default:""
     },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -44,9 +43,11 @@ const instituteSchema = new mongoose.Schema(
     },
     otp: {
       type: String,
+      default:null
     },
     otpExpires: {
       type: Date,
+      default:null
     },
     role: {
       type: String,
