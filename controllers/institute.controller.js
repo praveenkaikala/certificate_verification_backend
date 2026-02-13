@@ -162,12 +162,13 @@ exports.removeStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const instituteId = req.institute._id;
+    const {isVerified}=req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const [students, total] = await Promise.all([
-      Student.find({ instituteId })
+      Student.find({ instituteId,verificationStatus:isVerified })
         .select("-password -otp -otpExpires")
         .skip(skip)
         .limit(limit)
@@ -239,3 +240,6 @@ exports.getIssuedCertificates = async (req, res) => {
     });
   }
 };
+
+
+

@@ -11,5 +11,4 @@ router.delete("/students/:studentId", instituteAuth, controller.removeStudent);
 
 router.post("/certificates", instituteAuth,upload.single("certificate"), controller.issueCertificate);
 router.get("/certificates", instituteAuth, controller.getIssuedCertificates);
-
 module.exports = router;
