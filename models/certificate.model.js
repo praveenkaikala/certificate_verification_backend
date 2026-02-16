@@ -12,18 +12,13 @@ const certificateSchema = new mongoose.Schema(
       ref: "Institute",
       required: true,
     },
-    studentName: {
-      type: String,
-      required: true,
-    },
     courseName: {
       type: String,
-      required: true,
     },
     ipfsHash: {
       type: String,
-      required: true,
-      unique: true,
+      required:true,
+      unique:true,
     },
     issueDate: {
       type: Date,
@@ -31,10 +26,11 @@ const certificateSchema = new mongoose.Schema(
     },
     valid: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     transactionHash: {
       type: String,
+      default:""
     },
     // issuerAddress: {
     //   type: String,

@@ -10,5 +10,6 @@ router.put("/students/:studentId/verify", instituteAuth, controller.verifyStuden
 router.delete("/students/:studentId", instituteAuth, controller.removeStudent);
 
 router.post("/certificates", instituteAuth,upload.single("certificate"), controller.issueCertificate);
+router.put("/certificates", instituteAuth,controller.putTransId);
 router.get("/certificates", instituteAuth, controller.getIssuedCertificates);
 module.exports = router;

@@ -49,6 +49,10 @@ const instituteSchema = new mongoose.Schema(
       type: Date,
       default:null
     },
+    format_reg_no:{
+      type:String,
+      required:true
+    },
     role: {
       type: String,
       default: "institute",

@@ -4,6 +4,7 @@ const authRouter=require("./routes/auth.routes")
 const instituteRouter=require("./routes/institute.routes")
 const adminRouter=require("./routes/admin.routes")
 const studentRouter=require("./routes/student.routes")
+const publicRouter=require("./routes/public.routes")
 const cors=require("cors")
 const app=express()
 const allowedOrigins = [
@@ -22,7 +23,7 @@ app.use("/api/v1/auth",authRouter)
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/institutes",instituteRouter)
 app.use("/api/v1/students",studentRouter)
-
+app.use("/api/v1/public",publicRouter)
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/templates/index.html");
 });

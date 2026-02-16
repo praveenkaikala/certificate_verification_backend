@@ -37,7 +37,7 @@ const loginAdmin = async (req, res) => {
       }
     );
 
-    await sendOtp(email, otp, "admin", "login");
+    // await sendOtp(email, otp, "admin", "login");
 
     return res.status(200).json({
       message: "OTP sent to registered email. Please verify to complete login.",
@@ -103,7 +103,7 @@ const loginStudent = async (req, res) => {
       }
     );
 
-    await sendOtp( email, otp, "student", "login");
+    // await sendOtp( email, otp, "student", "login");
 
     return res.status(200).json({
       message: "OTP sent to registered email. Please verify to complete login.",
@@ -169,11 +169,11 @@ const registerInstitute = async (req, res) => {
       phone,
       password,
       address,
-      walletAddress,
+      format_reg_no
     } = req.body;
 
     // 1️⃣ Validate input
-    if (!name || !email || !reg_no || !password || !walletAddress) {
+    if (!name || !email || !reg_no || !password || !format_reg_no) {
       return res.status(400).json({
         message: "All required fields must be provided",
       });
@@ -181,7 +181,7 @@ const registerInstitute = async (req, res) => {
 
     // 2️⃣ Check existing institute
     const exists = await Institute.findOne({
-      $or: [{ email }, { reg_no }, { walletAddress }],
+      $or: [{ email }, { reg_no }],
     });
 
     if (exists) {
@@ -201,7 +201,8 @@ const registerInstitute = async (req, res) => {
       phone,
       password: hashedPassword,
       address,
-      walletAddress,
+      format_reg_no,
+      reg_no,
       isApproved: false,
     });
 
@@ -231,7 +232,6 @@ const registerStudent = async (req, res) => {
       walletAddress,
       reg_no
     } = req.body;
-
     // 1️⃣ Validate input
     if (!name || !email || !phone || !password || !instituteId || !reg_no) {
       return res.status(400).json({
@@ -239,18 +239,38 @@ const registerStudent = async (req, res) => {
       });
     }
 
-    // 2️⃣ Check institute exists & approved
+    // 2️⃣ Check institute exists & approvedsrkrc
     const institute = await Institute.findOne({
       reg_no: instituteId,
       isApproved: true,
     });
+     let pattern = "^";
+const format=institute.format_reg_no
+  for (let char of format) {
+    if (/[0-9]/.test(char)) {
+      pattern += "\\d";
+    } 
+    else if (/[a-zA-Z]/.test(char)) {
+      pattern += "[a-zA-Z]";
+    } 
+    else {
+      // Escape special characters
+      pattern += "\\" + char;
+    }
+  }
 
+  pattern += "$";
     if (!institute) {
       return res.status(400).json({
         message: "Invalid or unapproved institute",
       });
     }
-
+if(!pattern.test(reg_no))
+{
+   return res.status(400).json({
+        message: "Invalid registration format",
+      });
+}
     // 3️⃣ Check existing student
     const exists = await Student.findOne({
       $or: [{ email }, { phone },{reg_no}],

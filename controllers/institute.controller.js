@@ -5,9 +5,7 @@ const {sendCertificateIssuedEmail,sendStudentVerificationEmail,sendInstituteVeri
 const fs = require("fs");
 const ipfs = require("../utils/ipfsClient");
 const { uploadToPinata } = require("../utils/pinata");
-/**
- * ✅ Verify / Approve Student
- */
+
 exports.verifyStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -52,77 +50,92 @@ exports.verifyStudent = async (req, res) => {
 /**
  * 🎓 Issue Certificate to Student
  */
-exports.issueCertificate = async (req, res) => {
-  try {
-    // DEBUG
+  exports.issueCertificate = async (req, res) => {
+    try {
+      // DEBUG
+      
+      const instituteId = req.institute._id;
     
-    const instituteId = req.institute._id;
-   
-    const {
-      studentId,
-      courseName,
-      issuerAddress,
-      transactionHash,
-      ipfsHash
-    } = req.body;
-    console.log(studentId)
-    const student = await Student.findOne({
-      _id: studentId,
-      instituteId,
-      verificationStatus: true,
-    });
+      const {
+        studentId,
+        courseName,
+      } = req.body;
+      console.log(studentId)
+      const student = await Student.findOne({
+        reg_no: studentId,
+        instituteId,
+        verificationStatus: true,
+      });
 
-    if (!student) {
-      return res.status(404).json({
-        message: "Verified student not found",
+      if (!student) {
+        return res.status(404).json({
+          message: "Verified student not found",
+        });
+      }
+      if (!req.file) {
+        return res.status(400).json({
+          message: "Certificate file is required",
+        });
+      }
+      console.log("uploading")
+    const ipfsHash = await uploadToPinata(req.file.path);
+
+      // Remove local file
+      // console.log(ipfsHash.cid)
+      fs.unlinkSync(req.file.path);
+      const certificate = await Certificate.create({
+      studentId: student._id,
+      instituteId,
+      courseName,
+      ipfsHash: ipfsHash.cid
+    });
+    // console.log(certificate)
+      res.status(201).json({
+        message: "File uploaded to IPFS successfully",
+        data:{
+          id:certificate._id,
+          ipfsHash:ipfsHash.cid,
+          studentId:student._id,
+          instituteId
+        }
+      });
+
+      // 📧 Send email
+      // await sendCertificateIssuedEmail({
+      //     studentEmail:student.email,
+      //     studentName:student.name,
+      //     courseName
+      // });
+    } catch (error) {
+      res.status(500).json({
+        message: "Failed to issue certificate",
+        error: error.message,
       });
     }
-    if (!req.file) {
-      return res.status(400).json({
-        message: "Certificate file is required",
+  };
+  
+
+  exports.putTransId=async(req,res)=>{
+    try {
+      const { id,tranxId}=req.body
+      await Certificate.findByIdAndUpdate(id,{
+        transactionHash:tranxId,
+        valid:true
+      })
+      return res.status(200).send(
+        {
+          "message":"certificate updated ",
+          "success":true,
+          "error":false
+        }
+      )
+    } catch (error) {
+      res.status(500).json({
+        message: "Failed to issue certificate",
+        error: error.message,
       });
     }
-    console.log("uploading")
-//    const ipfsHash = await uploadToPinata(req.file.path);
-
-//     // Remove local file
-//     fs.unlinkSync(req.file.path);
-
-//     res.status(200).json({
-//       message: "File uploaded to IPFS successfully",
-//       ipfsHash,
-//       gatewayUrl: `https://gateway.pinata.cloud/ipfs/${ipfsHash.cid}`,
-//     });
-    const certificateCount = await Certificate.countDocuments();
-    const certificate = await Certificate.create({
-      studentId,
-      instituteId,
-      studentName: student.name,
-      courseName,
-      ipfsHash,
-      issuerAddress,
-      transactionHash
-    });
-
-    // 📧 Send email
-    // await sendCertificateIssuedEmail({
-    //     studentEmail:student.email,
-    //     studentName:student.name,
-    //     courseName
-    // });
-
-    res.status(201).json({
-      message: "Certificate issued successfully",
-      certificate,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to issue certificate",
-      error: error.message,
-    });
   }
-};
-
 
 /**
  * ❌ Remove Student
