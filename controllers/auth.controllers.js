@@ -218,7 +218,94 @@ const registerInstitute = async (req, res) => {
   }
 };
 
+/**
+ * 🎓 Student Registration
+ */
+const registerStudent = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      password,
+      instituteId,
+      walletAddress,
+      reg_no
+    } = req.body;
+    // 1️⃣ Validate input
+    if (!name || !email || !phone || !password || !instituteId || !reg_no) {
+      return res.status(400).json({
+        message: "All required fields must be provided",
+      });
+    }
 
+    // 2️⃣ Check institute exists & approvedsrkrc
+    const institute = await Institute.findOne({
+      reg_no: instituteId,
+      isApproved: true,
+    });
+     let pattern = "^";
+const format=institute.format_reg_no
+  for (let char of format) {
+    if (/[0-9]/.test(char)) {
+      pattern += "\\d";
+    } 
+    else if (/[a-zA-Z]/.test(char)) {
+      pattern += "[a-zA-Z]";
+    } 
+    else {
+      // Escape special characters
+      pattern += "\\" + char;
+    }
+  }
+
+  pattern += "$";
+    if (!institute) {
+      return res.status(400).json({
+        message: "Invalid or unapproved institute",
+      });
+    }
+if(!pattern.test(reg_no))
+{
+   return res.status(400).json({
+        message: "Invalid registration format",
+      });
+}
+    // 3️⃣ Check existing student
+    const exists = await Student.findOne({
+      $or: [{ email }, { phone },{reg_no}],
+    });
+
+    if (exists) {
+      return res.status(409).json({
+        message: "Student already registered",
+      });
+    }
+
+    // 4️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    // 5️⃣ Create student
+    const student = await Student.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      instituteId:institute._id,
+      walletAddress,
+      verificationStatus: false,reg_no,
+    });
+
+    res.status(201).json({
+      message: "Student registered successfully. Await institute verification.",
+      studentId: student._id,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Student registration failed",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   loginAdmin,
