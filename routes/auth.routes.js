@@ -1,5 +1,6 @@
 const express=require("express")
 const { loginAdmin, loginInstitute, loginStudent, verifyOtp, registerStudent, registerInstitute } = require("../controllers/auth.controllers")
+const { adminAuth } = require("../middleware/auth.middleware")
 
 
 const router=express.Router()

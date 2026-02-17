@@ -57,6 +57,10 @@ const instituteSchema = new mongoose.Schema(
       type: String,
       default: "institute",
     },
+    certificate_issue_count:{
+      type:String,
+      default:0
+    }
   },
   { timestamps: true }
 );

@@ -89,6 +89,9 @@ exports.verifyStudent = async (req, res) => {
       courseName,
       ipfsHash: ipfsHash.cid
     });
+    await Institute.findByIdAndUpdate(instituteId,{
+     $inc: { certificate_issue_count: 1 }
+    })
     // console.log(certificate)
       res.status(201).json({
         message: "File uploaded to IPFS successfully",

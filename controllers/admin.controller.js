@@ -1,6 +1,6 @@
 const Institute = require("../models/institute.model");
 const { sendInstituteVerificationEmail } = require("../utils/emails");
-
+const Certificate = require("../models/certificate.model");
 
 exports.verifyInstitute = async (req, res) => {
   try {
@@ -118,3 +118,31 @@ exports.deleteInstitute = async (req, res) => {
     });
   }
 };
+
+
+exports.getStats=async(req,res)=>{
+  try {
+      const totalcertificates=await Certificate.countDocuments({});
+      const totalInstitutes=await Institute.countDocuments({valid:true})
+      const totalStudents=await Institute.countDocuments({})
+      const topInstitutes = await Institute
+  .find()
+  .sort({ certificate_issue_count: -1 }) 
+  .limit(5).select("name certificate_issue_count"); ;
+
+      return res.status(200).send({
+        message:"AdminStats",
+        data:{
+          totalcertificates,
+          totalInstitutes,
+          totalStudents,
+          topInstitutes
+        }
+      })
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete institute",
+      error: error.message,
+    });
+  }
+}
