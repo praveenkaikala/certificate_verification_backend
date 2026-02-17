@@ -169,11 +169,10 @@ const registerInstitute = async (req, res) => {
       phone,
       password,
       address,
-      format_reg_no
     } = req.body;
 
     // 1️⃣ Validate input
-    if (!name || !email || !reg_no || !password || !format_reg_no) {
+    if (!name || !email || !reg_no || !password ) {
       return res.status(400).json({
         message: "All required fields must be provided",
       });
@@ -201,8 +200,7 @@ const registerInstitute = async (req, res) => {
       phone,
       password: hashedPassword,
       address,
-      format_reg_no,
-      reg,
+      reg_no,
       isApproved: false,
     });
 
@@ -218,7 +216,68 @@ const registerInstitute = async (req, res) => {
   }
 };
 
+const registerStudent = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      password,
+      instituteId,
+      reg_no
+    } = req.body;
+    // 1️⃣ Validate input
+    if (!name || !email || !phone || !password || !instituteId || !reg_no) {
+      return res.status(400).json({
+        message: "All required fields must be provided",
+      });
+    }
 
+    // 2️⃣ Check institute exists & approvedsrkrc
+    const institute = await Institute.findOne({
+      reg_no: instituteId,
+      isApproved: true,
+    });
+  
+    if (!institute) {
+      return res.status(400).json({
+        message: "Invalid or unapproved institute",
+      });
+    }
+    // 3️⃣ Check existing student
+    const exists = await Student.findOne({
+      $or: [{ email }, { phone },{reg_no}],
+    });
+
+    if (exists) {
+      return res.status(409).json({
+        message: "Student already registered",
+      });
+    }
+
+    // 4️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    // 5️⃣ Create student
+    const student = await Student.create({
+      name,
+      email,
+      phone,
+      password: hashedPassword,
+      instituteId:institute._id,
+      verificationStatus: false,reg_no,
+    });
+
+    res.status(201).json({
+      message: "Student registered successfully. Await institute verification.",
+      studentId: student._id,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Student registration failed",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   loginAdmin,
