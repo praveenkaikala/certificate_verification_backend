@@ -166,9 +166,8 @@ const registerInstitute = async (req, res) => {
       name,
       email,
       reg_no,
-      phone,
       password,
-      address,
+     
     } = req.body;
 
     // 1️⃣ Validate input
@@ -197,9 +196,8 @@ const registerInstitute = async (req, res) => {
       name,
       email,
       reg_no,
-      phone,
+     
       password: hashedPassword,
-      address,
       reg_no,
       isApproved: false,
     });

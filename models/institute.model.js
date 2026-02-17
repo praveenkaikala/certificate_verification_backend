@@ -19,7 +19,7 @@ const instituteSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      unique: true,
+      default:""
     },
     password: {
       type: String,
