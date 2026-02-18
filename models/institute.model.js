@@ -49,16 +49,20 @@ const instituteSchema = new mongoose.Schema(
       type: Date,
       default:null
     },
-    format_reg_no:{
-      type:String,
-      required:true
-    },
+    // format_reg_no:{
+    //   type:String,
+    //   required:true
+    // },
     role: {
       type: String,
       default: "institute",
     },
     certificate_issue_count:{
       type:String,
+      default:0
+    },
+    total_students:{
+      type:Number,
       default:0
     }
   },

@@ -26,13 +26,15 @@ exports.verifyStudent = async (req, res) => {
 
     student.verificationStatus = true;
     await student.save();
-
+    await Institute.findByIdAndUpdate(instituteId,{
+      $inc:{total_students:parseInt(1)}
+    })
     // 📧 Send email
-    await sendStudentVerificationEmail({
-   studentEmail:student.email,
-   studentName:student.name,
-   instituteName:req.institute.name
-    });
+  //   await sendStudentVerificationEmail({
+  //  studentEmail:student.email,
+  //  studentName:student.name,
+  //  instituteName:req.institute.name
+  //   });
 
     res.status(200).json({
       message: "Student verified successfully",
@@ -148,9 +150,11 @@ exports.removeStudent = async (req, res) => {
     const { studentId } = req.params;
     const instituteId = req.institute._id;
 
-    const student = await Student.findOneAndDelete({
+    const student = await Student.findOneAndUpdate({
       _id: studentId,
       instituteId,
+    },{
+      verificationStatus:false
     });
 
     if (!student) {
@@ -158,8 +162,10 @@ exports.removeStudent = async (req, res) => {
     }
 
     // Optional: also delete certificates
-    await Certificate.deleteMany({ studentId });
-
+    // await Certificate.deleteMany({ studentId });
+     await Institute.findByIdAndUpdate(instituteId,{
+      $inc:{total_students:-1}
+    })
     res.status(200).json({
       message: "Student removed successfully",
     });
@@ -178,7 +184,7 @@ exports.removeStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const instituteId = req.institute._id;
-    const {isVerified}=req.query;
+    const isVerified=req.query.isVerified || true;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -193,13 +199,53 @@ exports.getAllStudents = async (req, res) => {
     ]);
 
     res.status(200).json({
-      data: students,
-      pagination: {
+      message:"list of students",
+      data: {
+        students,
+    
         total,
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-      },
+     
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch students",
+      error: error.message,
+    });
+  }
+};
+
+exports.getpendingStudents = async (req, res) => {
+  try {
+    const instituteId = req.institute._id;
+    const isVerified=req.query.isVerified || false;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [students, total] = await Promise.all([
+      Student.find({ instituteId,verificationStatus:isVerified })
+        .select("-password -otp -otpExpires")
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      Student.countDocuments({ instituteId,verificationStatus:isVerified }),
+    ]);
+
+    res.status(200).json({
+      message:"list of students",
+      data: {
+        students,
+    
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+     
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -244,11 +290,37 @@ exports.getIssuedCertificates = async (req, res) => {
   try {
     const instituteId = req.institute._id;
 
-    const certificates = await Certificate.find({ instituteId })
-      .populate("studentId", "name email")
-      .sort({ createdAt: -1 });
+    // 📌 Get page & limit from query
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-    res.status(200).json(certificates);
+    const skip = (page - 1) * limit;
+
+    // 🔢 Total count (for frontend pagination)
+    const total = await Certificate.countDocuments({
+      instituteId: instituteId,
+    });
+
+    // 📄 Fetch paginated data
+    const certificates = await Certificate.find({
+      instituteId: instituteId,
+    })
+      .populate("studentId", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.status(200).json({
+      message:`list of certificates with the limit ${limit} for page ${page}`,
+      data:{
+        total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      certificates,
+      }
+    });
+
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch certificates",
@@ -258,4 +330,55 @@ exports.getIssuedCertificates = async (req, res) => {
 };
 
 
+exports.getStats=async(req,res)=>{
+  try {
+    const instituteId=req.institute._id
+    const totalStudents=req.institute.total_students;
+    const totalCertificates=req.institute.certificate_issue_count
+     const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
+    // 🔎 Count certificates issued this month
+    const issuedThisMonth = await Certificate.countDocuments({
+      institute: instituteId,
+      createdAt: {
+        $gte: startOfMonth,
+        $lt: endOfMonth,
+      },
+    });
+     res.status(200).json({
+      data:{
+
+        totalStudents,
+        totalCertificates,
+        issuedThisMonth:issuedThisMonth .toString(),
+      },
+      message:"instiute Stats"
+    });
+
+  } catch (error) {
+     res.status(500).json({
+      message: "Failed to fetch stats",
+      error: error.message,
+    });
+  }
+}
+
+
+exports.deleteCertificate=async(req,res)=>{
+  try {
+    const {certificateId}=req.params
+    await Certificate.findByIdAndUpdate(certificateId,{
+      valid:false
+    })
+    res.status(200).send({
+      message:"Certificate Delated"
+    })
+  } catch (error) {
+     res.status(500).json({
+      message: "Failed to fetch stats",
+      error: error.message,
+    });
+  }
+}

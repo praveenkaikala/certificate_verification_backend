@@ -11,11 +11,11 @@ exports.verifyInstitute = async (req, res) => {
       return res.status(404).json({ message: "Institute not found" });
     }
 
-    if (institute.isApproved) {
-      return res.status(400).json({ message: "Institute already approved" });
-    }
+    // if (institute.isApproved) {
+    //   return res.status(400).json({ message: "Institute already approved" });
+    // }
 
-    institute.isApproved = true;
+    institute.isApproved = !institute.isApproved;
     institute.approvedBy = req.admin._id; // or req.user._id
     await institute.save();
     await sendInstituteVerificationEmail({
@@ -48,8 +48,8 @@ exports.getInstitutes = async (req, res) => {
 
     const [institutes, total] = await Promise.all([
       Institute.find(filter)
-        .select("-password -otp -otpExpires")
-        .populate("approvedBy", "name email")
+        .select("name email reg_no isApproved _id")
+        .populate("approvedBy", "name email ")
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
@@ -57,13 +57,16 @@ exports.getInstitutes = async (req, res) => {
     ]);
 
     res.status(200).json({
-      data: institutes,
-      pagination: {
+      data:
+      {
+        institutes,
+
         total,
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-      },
+      } ,
+      message:`list of institutes with the limit ${limit} and page number ${page}`
     });
   } catch (error) {
     res.status(500).json({
