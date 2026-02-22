@@ -81,7 +81,7 @@ const baseTemplate = ({ title, content }) => `
 <body>
   <div class="container">
     <div class="header">
-      <h1>SkillChain</h1>
+      <h1>ForgeryShield</h1>
     </div>
 
     <div class="content">
@@ -90,7 +90,7 @@ const baseTemplate = ({ title, content }) => `
     </div>
 
     <div class="footer">
-      © ${new Date().getFullYear()} SkillChain • Blockchain Certificate Verification System
+      © ${new Date().getFullYear()} ForgeryShield • Blockchain Certificate Verification System
     </div>
   </div>
 </body>
@@ -112,7 +112,7 @@ const baseTemplate = ({ title, content }) => `
         },
       });
   await transporter.sendMail({
-    from: `"SkillChain" <${process.env.EMAIL}>`,
+    from: `"ForgeryShield" <${process.env.EMAIL}>`,
     to,
     subject,
     html,
@@ -144,7 +144,7 @@ const sendInstituteVerificationEmail = async ({
 
       <p style="margin-top:30px;">
         Regards,<br/>
-        <b>SkillChain Team</b>
+        <b>ForgeryShield Team</b>
       </p>
     `,
   });
@@ -152,7 +152,7 @@ const sendInstituteVerificationEmail = async ({
 
   await sendMail({
     to: instituteEmail,
-    subject: "Institute Verification Approved – SkillChain",
+    subject: "Institute Verification Approved – ForgeryShield",
     html,
   });
 };
@@ -188,14 +188,14 @@ const sendCertificateIssuedEmail = async ({
 
       <p style="margin-top:30px;">
         Regards,<br/>
-        <b>SkillChain Team</b>
+        <b>ForgeryShield Team</b>
       </p>
     `,
   });
 
   await sendMail({
     to: studentEmail,
-    subject: "Certificate Issued SkillChain",
+    subject: "Certificate Issued ForgeryShield",
     html,
   });
 };
@@ -218,21 +218,21 @@ const sendStudentVerificationEmail = async ({
 
       <p>
         You are now eligible to receive blockchain-verified certificates
-        through SkillChain.
+        through ForgeryShield.
       </p>
 
       <a href="#" class="button">View Profile</a>
 
       <p style="margin-top:30px;">
         Regards,<br/>
-        <b>SkillChain Team</b>
+        <b>ForgeryShield Team</b>
       </p>
     `,
   });
 
   await sendMail({
     to: studentEmail,
-    subject: "Student Verification Successful – SkillChain",
+    subject: "Student Verification Successful – ForgeryShield",
     html,
   });
 };
