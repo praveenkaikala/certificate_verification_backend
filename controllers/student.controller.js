@@ -11,22 +11,22 @@ exports.getStats = async (req, res) => {
     const studentId = req.student._id;
 
     const student = await Student.findById(studentId)
-      .select("name email walletAddress verificationStatus")
+      .select("name email verificationStatus createdAt")
       .populate("instituteId", "name");
 
-    const totalCertificates = await Certificate.countDocuments({ studentId });
+    const certificates = await Certificate.find({ studentId }).select("_id courseName ipfsHash issueDate transactionHash valid");
+    const totalCertificates=certificates.length;
 
     res.status(200).json({
       student: {
         name: student.name,
         email: student.email,
         institute: student.instituteId?.name,
-        walletAddress: student.walletAddress,
         verified: student.verificationStatus,
+        enrolled:student.createdAt
       },
-      stats: {
         totalCertificates,
-      },
+      data:certificates
     });
   } catch (error) {
     res.status(500).json({

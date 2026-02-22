@@ -58,7 +58,7 @@ const instituteSchema = new mongoose.Schema(
       default: "institute",
     },
     certificate_issue_count:{
-      type:String,
+      type:Number,
       default:0
     },
     total_students:{

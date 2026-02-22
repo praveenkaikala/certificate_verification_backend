@@ -11,6 +11,10 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "https://certificate-verification-using-bloc.vercel.app",
+   "http://localhost:8081",
+      "http://127.0.0.1:8081",
+    
+      "http://192.168.101.7:3000"
 ];
 app.use(cors({
     origin:allowedOrigins,
