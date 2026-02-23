@@ -3,7 +3,7 @@ exports.getCertificateDetails = async (req, res) => {
   try {
     const { id } = req.params;
     console.log(id);
-    const details = await Certificate.findOne({ _id: id })
+    const details = await Certificate.findOne({ _id: id ,valid:true})
       .populate({
         path: "studentId",
         select: "name email reg_no walletAddress", // only these fields
@@ -13,6 +13,12 @@ exports.getCertificateDetails = async (req, res) => {
         select: "name walletAddress",
       })
       .select("courseName ipfsHash valid transactionHash issueDate");
+      if(!details)
+      {
+        return res.status(404).send({
+          message:"certificate not valid from database"
+        })
+      }
     res.status(200).send({
       message: "datails",
       data: details,
