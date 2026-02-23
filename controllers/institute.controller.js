@@ -62,7 +62,7 @@ exports.verifyStudent = async (req, res) => {
         studentId,
         courseName,
       } = req.body;
-      console.log(studentId)
+      // console.log(studentId)
       const student = await Student.findOne({
         reg_no: studentId,
         instituteId,
@@ -79,7 +79,7 @@ exports.verifyStudent = async (req, res) => {
           message: "Certificate file is required",
         });
       }
-      console.log("uploading")
+      // console.log("uploading")
     const ipfsHash = await uploadToPinata(req.file.path);
 
       // Remove local file

@@ -11,9 +11,9 @@ exports.adminAuth = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-    console.log(token)
+  //  console.log (token)
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("verified")
+    // console.log("verified")
     if (decoded.role !== "admin") {
       return res.status(403).json({ message: "Access denied. Admin only." });
     }

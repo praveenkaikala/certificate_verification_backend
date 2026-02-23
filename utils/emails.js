@@ -148,7 +148,7 @@ const sendInstituteVerificationEmail = async ({
       </p>
     `,
   });
-  console.log(instituteEmail,instituteName)
+  // console.log(instituteEmail,instituteName)
 
   await sendMail({
     to: instituteEmail,

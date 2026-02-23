@@ -2,8 +2,7 @@ const Certificate = require("../models/certificate.model");
 exports.getCertificateDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
-    const details = await Certificate.findOne({ _id: id ,valid:true})
+        const details = await Certificate.findOne({ _id: id ,valid:true})
       .populate({
         path: "studentId",
         select: "name email reg_no walletAddress", // only these fields
