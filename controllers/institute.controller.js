@@ -350,8 +350,8 @@ exports.getStats=async(req,res)=>{
      res.status(200).json({
       data:{
 
-        totalStudents,
-        totalCertificates,
+        totalStudents:totalStudents.toString(),
+        totalCertificates:totalCertificates.toString(),
         issuedThisMonth:issuedThisMonth .toString(),
       },
       message:"instiute Stats"

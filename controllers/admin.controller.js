@@ -1,7 +1,7 @@
 const Institute = require("../models/institute.model");
 const { sendInstituteVerificationEmail } = require("../utils/emails");
 const Certificate = require("../models/certificate.model");
-
+const Student = require("../models/student.model");
 exports.verifyInstitute = async (req, res) => {
   try {
     const { instituteId } = req.params;
@@ -126,8 +126,8 @@ exports.deleteInstitute = async (req, res) => {
 exports.getStats=async(req,res)=>{
   try {
       const totalcertificates=await Certificate.countDocuments({});
-      const totalInstitutes=await Institute.countDocuments({valid:true})
-      const totalStudents=await Institute.countDocuments({})
+      const totalInstitutes=await Institute.countDocuments({isApproved:true})
+      const totalStudents=await Student.countDocuments({})
       const topInstitutes = await Institute
   .find()
   .sort({ certificate_issue_count: -1 }) 
