@@ -48,7 +48,7 @@ const studentSchema = new mongoose.Schema(
       type: String,
       default: "student",
     },
-    verificationStatus:{
+    valid:{
       type:Boolean,
       default:false
     }

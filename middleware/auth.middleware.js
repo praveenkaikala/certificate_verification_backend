@@ -119,7 +119,7 @@ exports.studentAuth = async (req, res, next) => {
     }
 
     // 6️⃣ Verification check (IMPORTANT)
-    if (!student.verificationStatus) {
+    if (!student.valid) {
       return res.status(403).json({
         message: "Student not verified by institute yet",
       });

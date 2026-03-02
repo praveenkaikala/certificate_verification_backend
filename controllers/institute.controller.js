@@ -20,11 +20,11 @@ exports.verifyStudent = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    if (student.verificationStatus) {
+    if (student.valid) {
       return res.status(400).json({ message: "Student already verified" });
     }
 
-    student.verificationStatus = true;
+    student.valid = true;
     await student.save();
     await Institute.findByIdAndUpdate(instituteId,{
       $inc:{total_students:parseInt(1)}
@@ -66,7 +66,7 @@ exports.verifyStudent = async (req, res) => {
       const student = await Student.findOne({
         reg_no: studentId,
         instituteId,
-        verificationStatus: true,
+        valid: true,
       });
 
       if (!student) {
@@ -154,7 +154,7 @@ exports.removeStudent = async (req, res) => {
       _id: studentId,
       instituteId,
     },{
-      verificationStatus:false
+      valid:false
     });
 
     if (!student) {
@@ -190,7 +190,7 @@ exports.getAllStudents = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const [students, total] = await Promise.all([
-      Student.find({ instituteId,verificationStatus:isVerified })
+      Student.find({ instituteId,valid:isVerified })
         .select("-password -otp -otpExpires")
         .skip(skip)
         .limit(limit)
@@ -227,12 +227,12 @@ exports.getpendingStudents = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const [students, total] = await Promise.all([
-      Student.find({ instituteId,verificationStatus:isVerified })
+      Student.find({ instituteId,valid:isVerified })
         .select("-password -otp -otpExpires")
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
-      Student.countDocuments({ instituteId,verificationStatus:isVerified }),
+      Student.countDocuments({ instituteId,valid:isVerified }),
     ]);
 
     res.status(200).json({

@@ -262,7 +262,7 @@ const registerStudent = async (req, res) => {
       phone,
       password: hashedPassword,
       instituteId:institute._id,
-      verificationStatus: false,reg_no,
+      valid: false,reg_no,
     });
 
     res.status(201).json({
