@@ -6,6 +6,7 @@ const adminRouter=require("./routes/admin.routes")
 const studentRouter=require("./routes/student.routes")
 const publicRouter=require("./routes/public.routes")
 const cors=require("cors")
+const { registerAdmin } = require("./fabric/registerAdmin")
 const app=express()
 const allowedOrigins = [
   "http://localhost:3000",
@@ -51,3 +52,5 @@ connect_db()
 // }).catch((error)=>{
 //     console.log(error)
 // })
+
+registerAdmin()

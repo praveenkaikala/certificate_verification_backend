@@ -5,6 +5,7 @@ const {sendCertificateIssuedEmail,sendStudentVerificationEmail,sendInstituteVeri
 const fs = require("fs");
 const ipfs = require("../utils/ipfsClient");
 const { uploadToPinata } = require("../utils/pinata");
+const connectFabric = require("../fabric/connection");
 
 exports.verifyStudent = async (req, res) => {
   try {
@@ -95,6 +96,20 @@ exports.verifyStudent = async (req, res) => {
      $inc: { certificate_issue_count: 1 }
     })
     // console.log(certificate)
+    console.log("constract")
+     const { contract, gateway } = await connectFabric();
+
+    await contract.submitTransaction(
+      "IssueCertificate",
+      certificate._id,
+      student._id,
+      instituteId,
+      ipfsHash.cid
+    );
+
+    await gateway.disconnect();
+    console.log("closed")
+
       res.status(201).json({
         message: "File uploaded to IPFS successfully",
         data:{
@@ -369,6 +384,14 @@ exports.getStats=async(req,res)=>{
 exports.deleteCertificate=async(req,res)=>{
   try {
     const {certificateId}=req.params
+    const { contract, gateway } = await connectFabric();
+
+    await contract.submitTransaction(
+      "RevokeCertificate",
+      certificateId
+    );
+
+    await gateway.disconnect();
     await Certificate.findByIdAndUpdate(certificateId,{
       valid:false
     })

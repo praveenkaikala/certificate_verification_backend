@@ -1,8 +1,25 @@
+const connectFabric = require("../fabric/connection");
 const Certificate = require("../models/certificate.model");
 exports.getCertificateDetails = async (req, res) => {
   try {
     const { id } = req.params;
-        const details = await Certificate.findOne({ _id: id ,valid:true})
+
+      const { contract, gateway } = await connectFabric();
+
+    const result = await contract.evaluateTransaction(
+      "VerifyCertificate",
+     id 
+    );
+
+    await gateway.disconnect();
+    const fabric= JSON.parse( result.toString())
+    if( fabric.status != "VALID")
+    {
+      return res.status(404).send({
+        message:"certificate not found in fabric"
+      })
+    }
+      const details = await Certificate.findOne({ _id: id ,valid:true})
       .populate({
         path: "studentId",
         select: "name email reg_no walletAddress", // only these fields
@@ -24,7 +41,7 @@ exports.getCertificateDetails = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: "Failed to issue certificate",
+      message: "Failed to fetch certificate",
       error: error.message,
     });
   }
