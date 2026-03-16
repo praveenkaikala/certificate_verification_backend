@@ -2,7 +2,7 @@ const { Wallets } = require("fabric-network");
 const fs = require("fs");
 const path = require("path");
 
- export async function registerAdmin() {
+async function main() {
   try {
     const walletPath = path.join(__dirname, "../wallet");
     const wallet = await Wallets.newFileSystemWallet(walletPath);
@@ -38,3 +38,4 @@ const keyDir = path.resolve(
   }
 }
 
+main();

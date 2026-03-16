@@ -52,5 +52,3 @@ connect_db()
 // }).catch((error)=>{
 //     console.log(error)
 // })
-
-registerAdmin()
