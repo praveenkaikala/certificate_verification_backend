@@ -21,7 +21,7 @@ exports.getCertificateDetails = async (req, res) => {
         message: "certificate not found in fabric",
       });
     }
-
+    console.log("block verified")
     const details = await Certificate.findOne({ _id: id, valid: true })
       .populate({
         path: "studentId",
@@ -53,7 +53,7 @@ exports.getCertificateDetails = async (req, res) => {
       details.signature,
       details.instituteId.publicKey
     );
-
+    console.log("sign verified")
     if (!isSignatureValid) {
       return res.status(400).send({
         message: "Signature verification failed (tampered certificate)",
@@ -63,7 +63,7 @@ exports.getCertificateDetails = async (req, res) => {
     res.status(200).send({
       message: "Certificate verified successfully",
       data: details,
-      signatureStatus: "VALID ✅",
+      signatureStatus: "VALID ",
     });
 
   } catch (error) {

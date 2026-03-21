@@ -37,7 +37,7 @@ const certificateSchema = new mongoose.Schema(
     // },
     signature:{
       type:String,
-      required:true
+      default:""
     }
   },
   { timestamps: true }

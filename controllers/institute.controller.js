@@ -81,26 +81,26 @@ exports.verifyStudent = async (req, res) => {
     // Upload to IPFS
     const ipfsHash = await uploadToPinata(req.file.path);
     fs.unlinkSync(req.file.path);
-
+console.log("uploaded")
     // Create certificate in DB
+    
+    // 🔐 Prepare data to sign (IMPORTANT)
     const certificate = await Certificate.create({
       studentId: student._id,
       instituteId,
       courseName,
       ipfsHash: ipfsHash.cid
     });
-
-    // 🔐 Prepare data to sign (IMPORTANT)
     const dataToSign = {
       certId: certificate._id.toString(),
       studentId: student._id.toString(),
       instituteId: instituteId.toString(),
       ipfsHash: ipfsHash.cid,
     };
-
+console.log(dataToSign)
     // 🔏 Generate digital signature
     const signature = signCertificate(dataToSign, instituteId);
-
+    console.log("signed",signature)
     // 👉 Save signature in DB
     certificate.signature = signature;
     await certificate.save();
@@ -123,7 +123,7 @@ exports.verifyStudent = async (req, res) => {
     );
 
     await gateway.disconnect();
-
+    console.log("blocked")
     res.status(201).json({
       message: "Certificate issued with digital signature",
       data: {
