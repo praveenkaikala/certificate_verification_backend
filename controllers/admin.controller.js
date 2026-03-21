@@ -2,6 +2,10 @@ const Institute = require("../models/institute.model");
 const { sendInstituteVerificationEmail } = require("../utils/emails");
 const Certificate = require("../models/certificate.model");
 const Student = require("../models/student.model");
+const fs = require("fs");
+const path = require("path");
+const generateKeys = require("../utils/genarateKeys");
+
 exports.verifyInstitute = async (req, res) => {
   try {
     const { instituteId } = req.params;
@@ -11,21 +15,31 @@ exports.verifyInstitute = async (req, res) => {
       return res.status(404).json({ message: "Institute not found" });
     }
 
-    // if (institute.isApproved) {
-    //   return res.status(400).json({ message: "Institute already approved" });
-    // }
-
     institute.isApproved = !institute.isApproved;
-    institute.approvedBy = req.admin._id; // or req.user._id
+    institute.approvedBy = req.admin._id;
+
+    // 🔑 Generate keys ONLY when approving
+    if (institute.isApproved && !institute.publicKey) {
+      const { publicKey, privateKey } = generateKeys();
+
+      institute.publicKey = publicKey;
+
+      const keyPath = path.join(__dirname, `../keys/${institute._id}.pem`);
+      fs.writeFileSync(keyPath, privateKey, { mode: 0o600 });
+    }
+
     await institute.save();
-    await sendInstituteVerificationEmail({
-        instituteEmail:institute.email,
-        instituteName:institute.name
-    })
+
+    // await sendInstituteVerificationEmail({
+    //   instituteEmail: institute.email,
+    //   instituteName: institute.name,
+    // });
+
     res.status(200).json({
       message: "Institute approved successfully",
       institute,
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Failed to verify institute",

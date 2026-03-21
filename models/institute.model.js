@@ -41,6 +41,10 @@ const instituteSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    publicKey:{
+      type:String,
+      default:null
+    },
     otp: {
       type: String,
       default:null
