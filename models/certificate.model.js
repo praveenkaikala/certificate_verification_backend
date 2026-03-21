@@ -35,6 +35,10 @@ const certificateSchema = new mongoose.Schema(
     // issuerAddress: {
     //   type: String,
     // },
+    signature:{
+      type:String,
+      required:true
+    }
   },
   { timestamps: true }
 );

@@ -1,44 +1,71 @@
 const connectFabric = require("../fabric/connection");
 const Certificate = require("../models/certificate.model");
+const verifySignature = require("../utils/verifySignature");
 exports.getCertificateDetails = async (req, res) => {
   try {
     const { id } = req.params;
 
-      const { contract, gateway } = await connectFabric();
+    const { contract, gateway } = await connectFabric();
 
     const result = await contract.evaluateTransaction(
       "VerifyCertificate",
-     id 
+      id
     );
 
     await gateway.disconnect();
-    const fabric= JSON.parse( result.toString())
-    if( fabric.status != "VALID")
-    {
+
+    const fabric = JSON.parse(result.toString());
+
+    if (fabric.status !== "VALID") {
       return res.status(404).send({
-        message:"certificate not found in fabric"
-      })
+        message: "certificate not found in fabric",
+      });
     }
-      const details = await Certificate.findOne({ _id: id ,valid:true})
+
+    const details = await Certificate.findOne({ _id: id, valid: true })
       .populate({
         path: "studentId",
-        select: "name email reg_no walletAddress", // only these fields
+        select: "name email reg_no walletAddress",
       })
       .populate({
         path: "instituteId",
-        select: "name walletAddress",
+        select: "name walletAddress publicKey", // 🔥 include publicKey
       })
-      .select("courseName ipfsHash valid transactionHash issueDate");
-      if(!details)
-      {
-        return res.status(404).send({
-          message:"certificate not valid from database"
-        })
-      }
+      .select("courseName ipfsHash valid transactionHash issueDate signature");
+
+    if (!details) {
+      return res.status(404).send({
+        message: "certificate not valid from database",
+      });
+    }
+
+    // 🔐 Prepare same data used during signing
+    const dataToVerify = {
+      certId: details._id.toString(),
+      studentId: details.studentId._id.toString(),
+      instituteId: details.instituteId._id.toString(),
+      ipfsHash: details.ipfsHash,
+    };
+
+    // 🔏 Verify signature
+    const isSignatureValid = verifySignature(
+      dataToVerify,
+      details.signature,
+      details.instituteId.publicKey
+    );
+
+    if (!isSignatureValid) {
+      return res.status(400).send({
+        message: "Signature verification failed (tampered certificate)",
+      });
+    }
+
     res.status(200).send({
-      message: "datails",
+      message: "Certificate verified successfully",
       data: details,
+      signatureStatus: "VALID ✅",
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch certificate",

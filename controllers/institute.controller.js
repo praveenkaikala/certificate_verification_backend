@@ -6,6 +6,7 @@ const fs = require("fs");
 const ipfs = require("../utils/ipfsClient");
 const { uploadToPinata } = require("../utils/pinata");
 const connectFabric = require("../fabric/connection");
+const signCertificate = require("../utils/signCerificate");
 
 exports.verifyStudent = async (req, res) => {
   try {
@@ -54,85 +55,93 @@ exports.verifyStudent = async (req, res) => {
  * 🎓 Issue Certificate to Student
  */
   exports.issueCertificate = async (req, res) => {
-    try {
-      // DEBUG
-      
-      const instituteId = req.institute._id;
-    
-      const {
-        studentId,
-        courseName,
-      } = req.body;
-      // console.log(studentId)
-      const student = await Student.findOne({
-        reg_no: studentId,
-        instituteId,
-        valid: true,
+  try {
+    const instituteId = req.institute._id;
+
+    const { studentId, courseName } = req.body;
+
+    const student = await Student.findOne({
+      reg_no: studentId,
+      instituteId,
+      valid: true,
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        message: "Verified student not found",
       });
+    }
 
-      if (!student) {
-        return res.status(404).json({
-          message: "Verified student not found",
-        });
-      }
-      if (!req.file) {
-        return res.status(400).json({
-          message: "Certificate file is required",
-        });
-      }
-      // console.log("uploading")
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Certificate file is required",
+      });
+    }
+
+    // Upload to IPFS
     const ipfsHash = await uploadToPinata(req.file.path);
+    fs.unlinkSync(req.file.path);
 
-      // Remove local file
-      // console.log(ipfsHash.cid)
-      fs.unlinkSync(req.file.path);
-      const certificate = await Certificate.create({
+    // Create certificate in DB
+    const certificate = await Certificate.create({
       studentId: student._id,
       instituteId,
       courseName,
       ipfsHash: ipfsHash.cid
     });
-    await Institute.findByIdAndUpdate(instituteId,{
-     $inc: { certificate_issue_count: 1 }
-    })
-    // console.log(certificate)
-    console.log("constract")
-     const { contract, gateway } = await connectFabric();
+
+    // 🔐 Prepare data to sign (IMPORTANT)
+    const dataToSign = {
+      certId: certificate._id.toString(),
+      studentId: student._id.toString(),
+      instituteId: instituteId.toString(),
+      ipfsHash: ipfsHash.cid,
+    };
+
+    // 🔏 Generate digital signature
+    const signature = signCertificate(dataToSign, instituteId);
+
+    // 👉 Save signature in DB
+    certificate.signature = signature;
+    await certificate.save();
+
+    // Update institute count
+    await Institute.findByIdAndUpdate(instituteId, {
+      $inc: { certificate_issue_count: 1 },
+    });
+
+    // 🔗 Store in Fabric (add signature param)
+    const { contract, gateway } = await connectFabric();
 
     await contract.submitTransaction(
       "IssueCertificate",
-      certificate._id,
-      student._id,
-      instituteId,
-      ipfsHash.cid
+      certificate._id.toString(),
+      student._id.toString(),
+      instituteId.toString(),
+      ipfsHash.cid,
+      signature // 🔥 NEW FIELD
     );
 
     await gateway.disconnect();
-    console.log("closed")
 
-      res.status(201).json({
-        message: "File uploaded to IPFS successfully",
-        data:{
-          id:certificate._id,
-          ipfsHash:ipfsHash.cid,
-          studentId:student._id,
-          instituteId
-        }
-      });
+    res.status(201).json({
+      message: "Certificate issued with digital signature",
+      data: {
+        id: certificate._id,
+        ipfsHash: ipfsHash.cid,
+        studentId: student._id,
+        instituteId,
+        signature // optional (for debug)
+      },
+    });
 
-      // 📧 Send email
-      // await sendCertificateIssuedEmail({
-      //     studentEmail:student.email,
-      //     studentName:student.name,
-      //     courseName
-      // });
-    } catch (error) {
-      res.status(500).json({
-        message: "Failed to issue certificate",
-        error: error.message,
-      });
-    }
-  };
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to issue certificate",
+      error: error.message,
+    });
+  }
+};
   
 
   exports.putTransId=async(req,res)=>{
